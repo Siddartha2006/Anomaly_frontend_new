@@ -11,29 +11,21 @@ const Dashboard = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [username, setUsername] = useState('User'); // Default username
 
-  // Fetch username safely from localStorage on mount
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem('currentUser');
-      console.log('Raw stored user:', storedUser); // Debug log
-      
       if (storedUser) {
         const user = JSON.parse(storedUser);
-        console.log('Parsed user object:', user); // Debug log
-        
         if (user?.username) {
           setUsername(user.username);
-          console.log('Username set to:', user.username); // Debug log
         }
       }
     } catch (error) {
       console.error('Error parsing user data:', error);
-      // If there's an error, redirect to login
       navigate('/login');
     }
   }, [navigate]);
 
-  // Drag and drop handlers
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -53,7 +45,6 @@ const Dashboard = () => {
     }
   };
 
-  // File selection and validation
   const handleFileSelect = (file) => {
     const validTypes = ['image/jpeg', 'image/png'];
     if (!validTypes.includes(file.type)) {
@@ -70,14 +61,11 @@ const Dashboard = () => {
     }
   };
 
-  // Image analysis API call with username included in form data
   const analyzeImage = async (file) => {
     setResult('analyzing');
     const formData = new FormData();
     formData.append('image', file);
     formData.append('username', username);
-
-    console.log('Sending username to API:', username); // Debug log
 
     try {
       const res = await fetch('http://127.0.0.1:5000/api/upload', {
@@ -99,9 +87,22 @@ const Dashboard = () => {
     }
   };
 
+  const handleUserHistory = () => {
+    navigate('/user-history');
+  };
+
+  const handleAdminHistory = () => {
+    const token = localStorage.getItem('adminToken');
+    if (token === 'valid') {
+      navigate('/history');
+    } else {
+      navigate('/admin-login');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('currentUser');
-    localStorage.removeItem('adminToken'); // Also remove admin token if exists
+    localStorage.removeItem('adminToken');
     navigate('/login');
   };
 
@@ -172,33 +173,24 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* History Button */}
-          <div className="history-button-container" style={{ marginTop: '20px', textAlign: 'right' }}>
+          {/* History Buttons */}
+          <div className="history-buttons-container">
             <button
-              className="history-btn"
-              onClick={() => {
-                const token = localStorage.getItem('adminToken');
-                if (token === 'valid') {
-                  navigate('/history');
-                } else {
-                  navigate('/admin-login');
-                }
-              }}
-              style={{
-                backgroundColor: '#4A90E2',
-                color: 'white',
-                padding: '10px 16px',
-                borderRadius: '5px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-              aria-label="View history"
+              className="history-btn user-history-btn"
+              onClick={handleUserHistory}
+              aria-label="View your upload history"
             >
               <FaHistory />
-              View History
+              Your History
+            </button>
+
+            <button
+              className="history-btn admin-history-btn"
+              onClick={handleAdminHistory}
+              aria-label="View admin history"
+            >
+              <FaHistory />
+              Admin History
             </button>
           </div>
 
