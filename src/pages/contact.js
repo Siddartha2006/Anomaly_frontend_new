@@ -10,6 +10,8 @@ const Contact = () => {
     phone: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); // 'success', 'error', or null
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,10 +21,47 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          username: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        setSubmitStatus('success');
+        // Reset form after successful submission
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          message: ''
+        });
+      } else {
+        setSubmitStatus('error');
+        console.error('Error:', data.message || 'Unknown error');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+      console.error('Network error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const faqs = [
@@ -74,6 +113,21 @@ const Contact = () => {
               <h2>Get In Touch</h2>
               <p className="form-subtitle">Let's discuss how we can enhance your industrial processes</p>
             </div>
+
+            {/* Status Messages */}
+            {submitStatus === 'success' && (
+              <div className="status-message success">
+                <i className="fas fa-check-circle"></i>
+                <p>Thank you! Your message has been sent successfully. We'll get back to you soon.</p>
+              </div>
+            )}
+            {submitStatus === 'error' && (
+              <div className="status-message error">
+                <i className="fas fa-exclamation-circle"></i>
+                <p>Sorry, there was an error sending your message. Please try again later.</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="modern-form">
               <div className="form-group">
                 <div className="input-wrapper">
@@ -86,6 +140,7 @@ const Contact = () => {
                     value={formData.name}
                     onChange={handleChange}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -100,6 +155,7 @@ const Contact = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -113,6 +169,7 @@ const Contact = () => {
                     placeholder="Phone Number"
                     value={formData.phone}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -127,12 +184,22 @@ const Contact = () => {
                     onChange={handleChange}
                     required
                     rows="5"
+                    disabled={isSubmitting}
                   ></textarea>
                 </div>
               </div>
-              <button type="submit" className="btn-submit">
-                <span>Send Message</span>
-                <i className="fas fa-arrow-right"></i>
+              <button type="submit" className="btn-submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <span>Sending...</span>
+                    <i className="fas fa-spinner fa-spin"></i>
+                  </>
+                ) : (
+                  <>
+                    <span>Send Message</span>
+                    <i className="fas fa-arrow-right"></i>
+                  </>
+                )}
               </button>
             </form>
           </div>
@@ -179,7 +246,6 @@ const Contact = () => {
             <ul>
               <li onClick={() => navigate('/documentation')}>Documentation</li>
               <li onClick={() => navigate('/api-reference')}>API Reference</li>
-              <li onClick={() => navigate('/case-studies')}>Case Studies</li>
               <li onClick={() => navigate('/blog')}>Blog</li>
               <li onClick={() => navigate('/privacy')}>Privacy Policy</li>
             </ul>
