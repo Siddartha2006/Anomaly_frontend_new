@@ -15,7 +15,7 @@ import AdminLogin from './pages/AdminLogin';
 // If you have additional components from the second structure, uncomment these:
 import UserHistory from './pages/UserHistory';
 
-import './App.css';
+import './index.css';
 
 const App = () => {
   return (
