@@ -5,7 +5,6 @@ import {
   Cpu, 
   Brain, 
   Layers, 
-  Zap, 
   Code, 
   Database,
   ArrowRight,
