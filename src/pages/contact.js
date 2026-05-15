@@ -1,21 +1,18 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Send, 
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Send,
   MessageSquare,
   ChevronDown,
   ChevronUp,
-  Sparkles,
-  CheckCircle
+  Sparkles
 } from 'lucide-react';
 import { Navbar, Footer, Button, Card, CardContent, Badge, Input, Textarea, Alert } from '../components/ui';
 
 const Contact = () => {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',

@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Upload, 
-  BarChart3, 
-  History, 
-  Shield, 
+import {
+  Upload,
+  BarChart3,
+  History,
+  Shield,
   CheckCircle,
   AlertTriangle,
   TrendingUp,
   Activity,
   Image,
-  FileImage,
   Sparkles,
   Eye,
   Target

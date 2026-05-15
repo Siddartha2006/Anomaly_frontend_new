@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  Calendar, 
-  Eye, 
-  Image, 
-  CheckCircle, 
+import {
+  ArrowLeft,
+  Calendar,
+  Eye,
+  CheckCircle,
   AlertTriangle,
   X,
   Sparkles,
