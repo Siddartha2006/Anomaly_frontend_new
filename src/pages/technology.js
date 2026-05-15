@@ -1,12 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Cpu, 
-  Brain, 
-  Layers, 
-  Zap, 
-  Code, 
+import {
+  Cpu,
+  Brain,
+  Layers,
+  Code,
   Database,
   ArrowRight,
   CheckCircle,
