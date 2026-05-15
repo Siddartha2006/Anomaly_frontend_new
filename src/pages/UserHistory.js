@@ -5,7 +5,6 @@ import {
   ArrowLeft, 
   Calendar, 
   Eye, 
-  Image, 
   CheckCircle, 
   AlertTriangle,
   X,

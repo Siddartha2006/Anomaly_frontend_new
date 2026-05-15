@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
-import { Search, Filter, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './Button';
 import { Input } from './Input';
 

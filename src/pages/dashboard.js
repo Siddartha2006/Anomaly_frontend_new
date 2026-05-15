@@ -11,7 +11,6 @@ import {
   TrendingUp,
   Activity,
   Image,
-  FileImage,
   Sparkles,
   Eye,
   Target
