@@ -1,5 +1,36 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { 
+  Search, 
+  Download, 
+  LogOut, 
+  Calendar,
+  Users,
+  FileImage,
+  AlertTriangle,
+  CheckCircle,
+  X,
+  RefreshCw,
+  ArrowLeft,
+  Scan,
+  Shield
+} from 'lucide-react';
+import { 
+  Button, 
+  Card, 
+  CardContent, 
+  Badge, 
+  Input,
+  Skeleton,
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+  Alert
+} from '../components/ui';
 
 const History = () => {
   const navigate = useNavigate();
@@ -17,36 +48,34 @@ const History = () => {
       return;
     }
 
-    // Fetch history data
-    const fetchHistory = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch('http://127.0.0.1:5000/api/history', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Fetched history data:', data); // Debug log
-
-        setGroupedHistory(data);
-        setFilteredHistory(data);
-      } catch (err) {
-        console.error('Error fetching history:', err);
-        setError('Failed to load history. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchHistory();
   }, [navigate]);
+
+  const fetchHistory = async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+      const response = await fetch('http://127.0.0.1:5000/api/history', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setGroupedHistory(data);
+      setFilteredHistory(data);
+    } catch (err) {
+      console.error('Error fetching history:', err);
+      setError('Failed to load history. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
@@ -70,9 +99,7 @@ const History = () => {
     const filtered = {};
     
     Object.entries(groupedHistory).forEach(([user, records]) => {
-      // Filter by username (case insensitive)
       if (user.toLowerCase().includes(term)) {
-        // Filter by date range
         const filteredRecords = records.filter((record) => {
           const recordDate = new Date(record.timestamp);
           const startDate = start ? new Date(start) : null;
@@ -121,145 +148,302 @@ const History = () => {
     setFilteredHistory(groupedHistory);
   };
 
-  if (isLoading) {
-    return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <h2>Loading History...</h2>
-        <p>Please wait while we fetch the data.</p>
-      </div>
-    );
-  }
+  const totalUsers = Object.keys(filteredHistory).length;
+  const totalRecords = Object.values(filteredHistory).reduce((acc, records) => acc + records.length, 0);
 
-  if (error) {
-    return (
-      <div style={{ padding: '20px' }}>
-        <h2>Error</h2>
-        <p style={{ color: 'red' }}>{error}</p>
-        <button onClick={() => window.location.reload()} style={{ padding: '8px 12px' }}>
-          Retry
-        </button>
-      </div>
-    );
-  }
+  const formatDate = (timestamp) => {
+    return new Date(timestamp).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2>All Users' Prediction History</h2>
-        <button onClick={handleLogout} style={{ padding: '8px 12px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          Logout
-        </button>
-      </div>
-
-      {/* Filter Controls */}
-      <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '5px' }}>
-        <h4 style={{ marginTop: '0' }}>Filters</h4>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-          <input
-            type="text"
-            placeholder="Search by username..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', minWidth: '200px' }}
-          />
-          <input
-            type="date"
-            name="start"
-            value={dateRange.start}
-            onChange={handleDateChange}
-            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-            title="Start date"
-          />
-          <input
-            type="date"
-            name="end"
-            value={dateRange.end}
-            onChange={handleDateChange}
-            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-            title="End date"
-          />
-          <button 
-            onClick={clearFilters} 
-            style={{ padding: '8px 12px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-          >
-            Clear Filters
-          </button>
-          <button 
-            onClick={downloadCSV} 
-            style={{ padding: '8px 12px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-          >
-            Download CSV
-          </button>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <Link to="/home" className="flex items-center gap-2">
+                <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center">
+                  <Scan className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-lg font-semibold text-foreground hidden sm:block">
+                  Anomaly<span className="text-primary">Eye</span>
+                </span>
+              </Link>
+              <Badge variant="outline" className="gap-1">
+                <Shield className="h-3 w-3" />
+                Admin Panel
+              </Badge>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2">
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Results Summary */}
-      <div style={{ marginBottom: '20px' }}>
-        <p><strong>Total Users:</strong> {Object.keys(filteredHistory).length}</p>
-        <p><strong>Total Records:</strong> {Object.values(filteredHistory).reduce((acc, records) => acc + records.length, 0)}</p>
-      </div>
+      <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Page Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/dashboard')}
+              className="mb-4 gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Button>
+            
+            <h1 className="text-3xl font-bold text-foreground">All Users&apos; Prediction History</h1>
+            <p className="text-muted-foreground mt-1">
+              View and manage analysis records from all users
+            </p>
+          </motion.div>
 
-      {/* History Data */}
-      {Object.keys(filteredHistory).length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', backgroundColor: '#f8f9fa', borderRadius: '5px' }}>
-          <p style={{ fontSize: '18px', color: '#6c757d' }}>No records found.</p>
-          {(searchTerm || dateRange.start || dateRange.end) && (
-            <p style={{ color: '#6c757d' }}>Try adjusting your filters or clearing them to see all records.</p>
+          {/* Filters */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="mb-6">
+              <CardContent className="p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by username..."
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="pl-10"
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="date"
+                        name="start"
+                        value={dateRange.start}
+                        onChange={handleDateChange}
+                        className="w-auto"
+                      />
+                      <span className="text-muted-foreground">to</span>
+                      <Input
+                        type="date"
+                        name="end"
+                        value={dateRange.end}
+                        onChange={handleDateChange}
+                        className="w-auto"
+                      />
+                    </div>
+                    <Button variant="outline" onClick={clearFilters} className="gap-2">
+                      <X className="h-4 w-4" />
+                      Clear
+                    </Button>
+                    <Button onClick={downloadCSV} className="gap-2">
+                      <Download className="h-4 w-4" />
+                      Export CSV
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-2 gap-4 mb-6"
+          >
+            <Card>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Users</p>
+                  <p className="text-2xl font-bold text-foreground">{totalUsers}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
+                  <FileImage className="h-5 w-5 text-success" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Records</p>
+                  <p className="text-2xl font-bold text-foreground">{totalRecords}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Content */}
+          {isLoading ? (
+            <Card>
+              <CardContent className="p-6 space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <Skeleton className="h-16 w-16 rounded-lg" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ) : error ? (
+            <Alert
+              variant="destructive"
+              title="Error Loading Data"
+              description={error}
+              className="mb-6"
+            />
+          ) : Object.keys(filteredHistory).length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                  <FileImage className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">No Records Found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {searchTerm || dateRange.start || dateRange.end 
+                    ? 'Try adjusting your filters to see more results.' 
+                    : 'No prediction history available yet.'}
+                </p>
+                {(searchTerm || dateRange.start || dateRange.end) && (
+                  <Button variant="outline" onClick={clearFilters}>
+                    Clear Filters
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-6"
+            >
+              {Object.entries(filteredHistory).map(([username, records], userIndex) => (
+                <motion.div
+                  key={username}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: userIndex * 0.1 }}
+                >
+                  <Card>
+                    <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center text-white font-medium">
+                          {username.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">{username}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {records.length} {records.length === 1 ? 'record' : 'records'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Image</TableHead>
+                            <TableHead>Result</TableHead>
+                            <TableHead>Confidence</TableHead>
+                            <TableHead>Date</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {records.map((item, index) => {
+                            const isDefective = item.label?.toLowerCase()?.includes('defective');
+                            return (
+                              <TableRow key={index}>
+                                <TableCell>
+                                  <div className="h-16 w-16 rounded-lg overflow-hidden border border-border bg-muted/30">
+                                    {item.image_url ? (
+                                      <img 
+                                        src={item.image_url} 
+                                        alt="Analysis" 
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          e.target.style.display = 'none';
+                                        }}
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center">
+                                        <FileImage className="h-6 w-6 text-muted-foreground" />
+                                      </div>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={isDefective ? 'destructive' : 'success'}>
+                                    {isDefective ? (
+                                      <><AlertTriangle className="h-3 w-3 mr-1" /> {item.label}</>
+                                    ) : (
+                                      <><CheckCircle className="h-3 w-3 mr-1" /> {item.label}</>
+                                    )}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="font-medium">
+                                    {typeof item.confidence === 'number' 
+                                      ? `${(item.confidence * 100).toFixed(1)}%`
+                                      : item.confidence || 'N/A'}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-muted-foreground">
+                                    {item.timestamp ? formatDate(item.timestamp) : 'N/A'}
+                                  </span>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+
+          {/* Refresh Button */}
+          {!isLoading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-6 text-center"
+            >
+              <Button variant="outline" onClick={fetchHistory} className="gap-2">
+                <RefreshCw className="h-4 w-4" />
+                Refresh Data
+              </Button>
+            </motion.div>
           )}
         </div>
-      ) : (
-        Object.entries(filteredHistory).map(([username, records]) => (
-          <div key={username} style={{ marginBottom: '40px', border: '1px solid #dee2e6', borderRadius: '5px', overflow: 'hidden' }}>
-            <h3 style={{ backgroundColor: '#e9ecef', padding: '15px', margin: '0', borderBottom: '1px solid #dee2e6' }}>
-              {username} ({records.length} record{records.length !== 1 ? 's' : ''})
-            </h3>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead style={{ backgroundColor: '#f8f9fa' }}>
-                  <tr>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #dee2e6' }}>Image</th>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #dee2e6' }}>Label</th>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #dee2e6' }}>Confidence</th>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #dee2e6' }}>Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {records.map((item, index) => (
-                    <tr key={index} style={{ borderBottom: index < records.length - 1 ? '1px solid #dee2e6' : 'none' }}>
-                      <td style={{ padding: '12px' }}>
-                        {item.image_url ? (
-                          <img 
-                            src={item.image_url} 
-                            alt="Uploaded" 
-                            style={{ width: '120px', height: '80px', objectFit: 'cover', borderRadius: '4px' }}
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'block';
-                            }}
-                          />
-                        ) : null}
-                        <div style={{ display: 'none', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '4px', fontSize: '12px', color: '#6c757d' }}>
-                          Image not available
-                        </div>
-                      </td>
-                      <td style={{ padding: '12px' }}>{item.label || 'N/A'}</td>
-                      <td style={{ padding: '12px' }}>
-                        {typeof item.confidence === 'number' 
-                          ? `${(item.confidence * 100).toFixed(2)}%`
-                          : item.confidence || 'N/A'
-                        }
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        {item.timestamp ? new Date(item.timestamp).toLocaleString() : 'N/A'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ))
-      )}
+      </main>
     </div>
   );
 };

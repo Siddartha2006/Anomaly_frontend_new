@@ -1,7 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaImage, FaCalendarAlt, FaEye, FaSpinner } from 'react-icons/fa';
-import './userHistory.css';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  ArrowLeft, 
+  Calendar, 
+  Eye, 
+  Image, 
+  CheckCircle, 
+  AlertTriangle,
+  X,
+  Sparkles,
+  FileImage,
+  Clock
+} from 'lucide-react';
+import { 
+  Navbar, 
+  Button, 
+  Card, 
+  CardContent, 
+  Badge, 
+  Skeleton
+} from '../components/ui';
 
 const UserHistory = () => {
   const navigate = useNavigate();
@@ -12,7 +31,6 @@ const UserHistory = () => {
   const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
-    // Get username from localStorage
     try {
       const storedUser = localStorage.getItem('currentUser');
       if (storedUser) {
@@ -53,15 +71,10 @@ const UserHistory = () => {
 
   const formatDate = (isoString) => {
     const date = new Date(isoString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-  };
-
-  const handleImageClick = (record) => {
-    setSelectedImage(record);
-  };
-
-  const closeModal = () => {
-    setSelectedImage(null);
+    return {
+      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    };
   };
 
   const handleLogout = () => {
@@ -70,181 +83,258 @@ const UserHistory = () => {
     navigate('/login');
   };
 
-  if (loading) {
-    return (
-      <div className="user-history-wrapper">
-        <nav className="dashboard-nav">
-          <div className="nav-logo">
-            <span className="logo-text">AE</span>
-            <span className="logo-full">Anomaly Eye</span>
-          </div>
-          <div className="nav-links">
-            <Link to="/home">Home</Link>
-            <Link to="/about">About</Link>
-            <Link to="/technology">Technology</Link>
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/contact">Contact</Link>
-          </div>
-          <div className="nav-profile">
-            <div className="user-info">
-              <span className="user-name">{username}</span>
-              <span className="user-role">User</span>
-            </div>
-            <button onClick={handleLogout} className="logout-btn">
-              Logout
-            </button>
-          </div>
-        </nav>
-        <div className="loading-container">
-          <FaSpinner className="spinner" />
-          <p>Loading your history...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="user-history-wrapper">
-      {/* Navbar */}
-      <nav className="dashboard-nav">
-        <div className="nav-logo">
-          <span className="logo-text">AE</span>
-          <span className="logo-full">Anomaly Eye</span>
-        </div>
-        <div className="nav-links">
-          <Link to="/home">Home</Link>
-          <Link to="/about">About</Link>
-          <Link to="/technology">Technology</Link>
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/contact">Contact</Link>
-        </div>
-        <div className="nav-profile">
-          <div className="user-info">
-            <span className="user-name">{username}</span>
-            <span className="user-role">User</span>
-          </div>
-          <button onClick={handleLogout} className="logout-btn">
-            Logout
-          </button>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <div className="user-history-container">
-        <header className="history-header">
-          <button className="back-btn" onClick={() => navigate('/dashboard')}>
-            <FaArrowLeft />
-            Back to Dashboard
-          </button>
-          <h1>Your Analysis History</h1>
-          <p className="subtitle">View all your previous image analysis results</p>
-        </header>
-
-        {error && (
-          <div className="error-message">
-            <p>{error}</p>
-            <button onClick={() => fetchUserHistory(username)}>Retry</button>
-          </div>
-        )}
-
-        {!error && (
-          <div className="history-content">
-            {history.length === 0 ? (
-              <div className="no-history">
-                <FaImage className="no-history-icon" />
-                <h3>No Analysis History</h3>
-                <p>You haven't analyzed any images yet.</p>
-                <Link to="/dashboard" className="start-analyzing-btn">
-                  Start Analyzing
-                </Link>
+    <div className="min-h-screen bg-background">
+      <Navbar isLoggedIn={true} username={username} onLogout={handleLogout} />
+      
+      <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/dashboard')}
+              className="mb-4 gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Button>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Analysis History</h1>
+                <p className="text-muted-foreground mt-1">
+                  View your previous image analysis results
+                </p>
               </div>
-            ) : (
-              <div className="history-grid">
-                {history.map((record, index) => (
-                  <div key={record._id || index} className="history-card">
-                    <div className="card-header">
-                      <FaCalendarAlt className="date-icon" />
-                      <span className="date">{formatDate(record.timestamp)}</span>
-                    </div>
-                    
-                    <div className="card-image" onClick={() => handleImageClick(record)}>
-                      <img 
-                        src={record.image_url} 
-                        alt="Analysis" 
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
-                      />
-                      <div className="image-placeholder" style={{display: 'none'}}>
-                        <FaImage />
-                        <span>Image not available</span>
-                      </div>
-                      <div className="image-overlay">
-                        <FaEye />
-                        <span>View Details</span>
-                      </div>
-                    </div>
+              <Badge variant="outline" className="w-fit">
+                <Clock className="h-3 w-3 mr-1" />
+                {history.length} {history.length === 1 ? 'analysis' : 'analyses'}
+              </Badge>
+            </div>
+          </motion.div>
 
-                    <div className="card-content">
-                      <div className="result-info">
-                        <div className="result-item">
-                          <span className="label">Result:</span>
-                          <span className={`value ${record.label === 'defective' ? 'defective' : 'non-defective'}`}>
-                            {record.label}
+          {/* Content */}
+          {loading ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="p-4">
+                    <Skeleton className="aspect-square rounded-lg mb-4" />
+                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="h-3 w-32" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : error ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <div className="h-16 w-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+                    <AlertTriangle className="h-8 w-8 text-destructive" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Failed to Load History</h3>
+                  <p className="text-muted-foreground mb-4">{error}</p>
+                  <Button onClick={() => fetchUserHistory(username)}>
+                    Try Again
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ) : history.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                    <FileImage className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No Analysis History</h3>
+                  <p className="text-muted-foreground mb-4">You haven&apos;t analyzed any images yet.</p>
+                  <Button onClick={() => navigate('/dashboard')}>
+                    Start Analyzing
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            >
+              {history.map((record, index) => {
+                const isDefective = record.label?.toLowerCase()?.includes('defective');
+                const { date, time } = formatDate(record.timestamp);
+                
+                return (
+                  <motion.div
+                    key={record._id || index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card 
+                      hover 
+                      className="overflow-hidden cursor-pointer group"
+                      onClick={() => setSelectedImage(record)}
+                    >
+                      <div className="relative aspect-square">
+                        <img 
+                          src={record.image_url} 
+                          alt="Analysis" 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                          <Button size="sm" variant="secondary" className="gap-2">
+                            <Eye className="h-3 w-3" />
+                            View Details
+                          </Button>
+                        </div>
+                        <div className="absolute top-3 right-3">
+                          <Badge variant={isDefective ? 'destructive' : 'success'}>
+                            {isDefective ? (
+                              <><AlertTriangle className="h-3 w-3 mr-1" /> Defective</>
+                            ) : (
+                              <><CheckCircle className="h-3 w-3 mr-1" /> Pass</>
+                            )}
+                          </Badge>
+                        </div>
+                      </div>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-foreground">
+                            {(record.confidence * 100).toFixed(1)}% confidence
                           </span>
                         </div>
-                        <div className="result-item">
-                          <span className="label">Confidence:</span>
-                          <span className="value">{(record.confidence * 100).toFixed(1)}%</span>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Calendar className="h-3 w-3" />
+                          <span>{date}</span>
+                          <span>at</span>
+                          <span>{time}</span>
                         </div>
-                      </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
+        </div>
+      </main>
+
+      {/* Image Detail Modal */}
+      <AnimatePresence>
+        {selectedImage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+              onClick={() => setSelectedImage(null)}
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-3xl max-h-[90vh] overflow-auto rounded-xl border border-border bg-card shadow-2xl"
+            >
+              <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-border bg-card/95 backdrop-blur-sm">
+                <h2 className="text-lg font-semibold text-foreground">Analysis Details</h2>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setSelectedImage(null)}
+                  className="h-8 w-8"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                {/* Images */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-sm font-medium text-foreground mb-2">Original Image</p>
+                    <div className="aspect-square rounded-xl overflow-hidden border border-border bg-muted/30">
+                      <img 
+                        src={selectedImage.image_url} 
+                        alt="Original" 
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   </div>
-                ))}
+                  {selectedImage.gradcam_url && (
+                    <div>
+                      <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-1">
+                        Grad-CAM Analysis
+                        <Sparkles className="h-3 w-3 text-primary" />
+                      </p>
+                      <div className="aspect-square rounded-xl overflow-hidden border border-primary/30 bg-muted/30">
+                        <img 
+                          src={selectedImage.gradcam_url} 
+                          alt="Grad-CAM" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Details */}
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                    <p className="text-sm text-muted-foreground mb-1">Result</p>
+                    <div className="flex items-center gap-2">
+                      {selectedImage.label?.toLowerCase()?.includes('defective') ? (
+                        <>
+                          <AlertTriangle className="h-4 w-4 text-destructive" />
+                          <span className="font-medium text-destructive">{selectedImage.label}</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 text-success" />
+                          <span className="font-medium text-success">{selectedImage.label}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                    <p className="text-sm text-muted-foreground mb-1">Confidence</p>
+                    <p className="text-xl font-bold text-foreground">
+                      {(selectedImage.confidence * 100).toFixed(2)}%
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                    <p className="text-sm text-muted-foreground mb-1">Analyzed On</p>
+                    <p className="font-medium text-foreground">
+                      {formatDate(selectedImage.timestamp).date}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatDate(selectedImage.timestamp).time}
+                    </p>
+                  </div>
+                </div>
               </div>
-            )}
+            </motion.div>
           </div>
         )}
-      </div>
-
-      {/* Image Modal */}
-      {selectedImage && (
-        <div className="image-modal" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeModal}>×</button>
-            <h3>Analysis Details</h3>
-            <div className="modal-images">
-              <div className="modal-image-section">
-                <h4>Original Image</h4>
-                <img src={selectedImage.image_url} alt="Original Analysis" />
-              </div>
-              {selectedImage.gradcam_url && (
-                <div className="modal-image-section">
-                  <h4>Grad-CAM Analysis</h4>
-                  <img src={selectedImage.gradcam_url} alt="Grad-CAM" />
-                </div>
-              )}
-            </div>
-            <div className="modal-details">
-              <div className="detail-row">
-                <span>Result:</span>
-                <span className={selectedImage.label === 'defective' ? 'defective' : 'non-defective'}>
-                  {selectedImage.label}
-                </span>
-              </div>
-              <div className="detail-row">
-                <span>Confidence:</span>
-                <span>{(selectedImage.confidence * 100).toFixed(2)}%</span>
-              </div>
-              <div className="detail-row">
-                <span>Analyzed on:</span>
-                <span>{formatDate(selectedImage.timestamp)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </AnimatePresence>
     </div>
   );
 };
